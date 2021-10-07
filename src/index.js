@@ -1,4 +1,6 @@
 import "./styles.css";
+import "./detectbrowser";
+import detectBrowser from "./detectbrowser";
 
 const app = document.getElementById("app");
 
@@ -284,6 +286,10 @@ function handleCancel(evt) {
 }
 
 function startup() {
+  if (detectBrowser() === "IE") {
+    alert("IE is not supported!!!");
+    return;
+  }
   var el = document.getElementById("canvas");
   if (el !== null && typeof el !== "undefined") {
     document.removeEventListener("mousemove", startup);
