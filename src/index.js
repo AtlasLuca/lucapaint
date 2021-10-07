@@ -8,7 +8,8 @@ app.innerHTML = `
     Your browser does not support canvas elements.
   </canvas>
   <div id="bottombar">
-    <button id="modebutton" title="Mode">Draw</button>
+    <button id="modebutton" title="Draw mode">Draw</button>
+    <button id="fillmodebutton" title="Fill mode">Outline</button>
     <button id="backgroundbutton" title="Background type">No lines</button>
     <input id="size" title="Size" type="number" min="5" max="50" value="10" step="5" class="size">
     <input id="color" title="Color" type="color"></button>
@@ -18,26 +19,12 @@ app.innerHTML = `
 <canvas id="clone" style="display: none;">If you can see this than you might have CSS disabled</canvas>
 `;
 
-var ongoingTouches = [];
-
 var usepattern = false; //Use pattern? By default set to false
 var mode = 0; //Current mode, modes are 1 - draw, 2 - erase, 3 - circle, 4 - line, 5 - rect
-var startTouches = [];
-/*var colorid = 0;
-var colors = [
-  "#000000",
-  "#888888",
-  "#ff0000",
-  "#ff8800",
-  "#ffff00",
-  "#008800",
-  "#00ff00",
-  "#00ffff",
-  "#0000ff",
-  "#8800ff",
-  "#ff00ff",
-  "#964b00"
-];*/
+var fillsolid = false;
+
+var ongoingTouches = []; //Ongoing touches
+var startTouches = []; //Touch start positions
 
 var backgroundpattern = "";
 
@@ -56,7 +43,7 @@ function clearCanvas() {
   var ctx = el.getContext("2d");
   if (usepattern) {
     ctx.fillStyle = backgroundpattern;
-    ctx.fillRect(0, 0, el.width, el.height);
+    ctx.fillRect(0, 0, el.width, el.height); //Fill with pattern
   } else {
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, el.width, el.height);
@@ -89,6 +76,7 @@ function handleStart(evt) {
   evt.preventDefault();
   var el = document.getElementById("canvas");
   if (el.width !== window.innerWidth || el.height !== window.innerHeight - 30) {
+    //Update size when needed
     el.width = window.innerWidth.toString();
     el.style.width = window.innerWidth;
     el.height = (window.innerHeight - 30).toString();
@@ -134,29 +122,31 @@ function handleMove(evt) {
       }
       ctx.strokeStyle = color;
       ctx.lineCap = "round";
-      if (mode === 0) {
-        ctx.moveTo(ongoingTouches[idx].pageX, ongoingTouches[idx].pageY);
-        ctx.lineTo(touches[i].pageX, touches[i].pageY);
-        ctx.stroke();
-      } else if (mode === 1) {
-        ctx.lineWidth = widthvalue * 2;
-        if (usepattern) {
-          ctx.strokeStyle = backgroundpattern;
-        } else {
-          ctx.strokeStyle = "#ffffff"; //Eraser is used
-        }
-        ctx.moveTo(ongoingTouches[idx].pageX, ongoingTouches[idx].pageY);
-        ctx.lineTo(touches[i].pageX, touches[i].pageY);
-        ctx.stroke();
-      } else if (mode === 2) {
-        if (i === 0) {
+
+      switch (mode) {
+        case 0:
+          ctx.moveTo(ongoingTouches[idx].pageX, ongoingTouches[idx].pageY);
+          ctx.lineTo(touches[i].pageX, touches[i].pageY);
+          ctx.stroke();
+          break;
+        case 1:
+          ctx.lineWidth = widthvalue * 2;
+          if (usepattern) {
+            ctx.strokeStyle = backgroundpattern;
+          } else {
+            ctx.strokeStyle = "#ffffff"; //Eraser is used
+          }
+          ctx.moveTo(ongoingTouches[idx].pageX, ongoingTouches[idx].pageY);
+          ctx.lineTo(touches[i].pageX, touches[i].pageY);
+          ctx.stroke();
+          break;
+        case 2:
           ctx.drawImage(document.getElementById("clone"), 0, 0);
           ctx.moveTo(startTouches[i].pageX, startTouches[i].pageY);
           ctx.lineTo(touches[i].pageX, touches[i].pageY);
           ctx.stroke();
-        }
-      } else if (mode === 3) {
-        if (i === 0) {
+          break;
+        case 3:
           ctx.drawImage(document.getElementById("clone"), 0, 0);
           var radius = Math.sqrt(
             Math.pow(startTouches[i].pageX - touches[i].pageX, 2) +
@@ -170,20 +160,34 @@ function handleMove(evt) {
             Math.PI * 2,
             true
           );
-          ctx.stroke();
-        }
-      } else if (mode === 4) {
-        if (i === 0) {
+          if (fillsolid) {
+            ctx.fill();
+          } else {
+            ctx.stroke();
+          }
+          break;
+        case 4:
           ctx.drawImage(document.getElementById("clone"), 0, 0);
           ctx.moveTo(startTouches[i].pageX, startTouches[i].pageY);
-          ctx.strokeRect(
-            startTouches[i].pageX,
-            startTouches[i].pageY,
-            touches[i].pageX - startTouches[i].pageX,
-            touches[i].pageY - startTouches[i].pageY
-          );
-          ctx.stroke();
-        }
+          if (fillsolid) {
+            ctx.fillRect(
+              startTouches[i].pageX,
+              startTouches[i].pageY,
+              touches[i].pageX - startTouches[i].pageX,
+              touches[i].pageY - startTouches[i].pageY
+            );
+          } else {
+            ctx.strokeRect(
+              startTouches[i].pageX,
+              startTouches[i].pageY,
+              touches[i].pageX - startTouches[i].pageX,
+              touches[i].pageY - startTouches[i].pageY
+            );
+            ctx.stroke();
+          }
+          break;
+        default:
+          break; //Do nothing since the mode is unknown
       }
 
       ongoingTouches.splice(idx, 1, copyTouch(touches[i])); // swap in the new touch record
@@ -205,35 +209,55 @@ function handleEnd(evt) {
       ctx.lineWidth = 4;
       ctx.fillStyle = color;
       ctx.beginPath();
-      if (mode === 2) {
-        var radius = Math.sqrt(
-          Math.pow(startTouches[i].pageX - touches[i].pageX, 2) +
-            Math.pow(startTouches[i].pageY - touches[i].pageY, 2)
-        );
-        ctx.arc(
-          startTouches[i].pageX,
-          startTouches[i].pageY,
-          radius,
-          0,
-          Math.PI * 2,
-          true
-        );
-        ctx.stroke();
-      } else if (mode === 3) {
-        ctx.drawImage(document.getElementById("clone"), 0, 0);
-        ctx.moveTo(startTouches[i].pageX, startTouches[i].pageY);
-        ctx.lineTo(touches[i].pageX, touches[i].pageY);
-        ctx.stroke();
-      } else if (mode === 4) {
-        ctx.drawImage(document.getElementById("clone"), 0, 0);
-        ctx.moveTo(startTouches[i].pageX, startTouches[i].pageY);
-        ctx.strokeRect(
-          startTouches[i].pageX,
-          startTouches[i].pageY,
-          touches[i].pageX - startTouches[i].pageX,
-          touches[i].pageY - startTouches[i].pageY
-        );
-        ctx.stroke();
+      switch (mode) {
+        case 2:
+          ctx.drawImage(document.getElementById("clone"), 0, 0);
+          ctx.moveTo(startTouches[i].pageX, startTouches[i].pageY);
+          ctx.lineTo(touches[i].pageX, touches[i].pageY);
+          ctx.stroke();
+          break;
+        case 3:
+          ctx.drawImage(document.getElementById("clone"), 0, 0);
+          var radius = Math.sqrt(
+            Math.pow(startTouches[i].pageX - touches[i].pageX, 2) +
+              Math.pow(startTouches[i].pageY - touches[i].pageY, 2)
+          );
+          ctx.arc(
+            startTouches[i].pageX,
+            startTouches[i].pageY,
+            radius,
+            0,
+            Math.PI * 2,
+            true
+          );
+          if (fillsolid) {
+            ctx.fill();
+          } else {
+            ctx.stroke();
+          }
+          break;
+        case 4:
+          ctx.drawImage(document.getElementById("clone"), 0, 0);
+          ctx.moveTo(startTouches[i].pageX, startTouches[i].pageY);
+          if (fillsolid) {
+            ctx.fillRect(
+              startTouches[i].pageX,
+              startTouches[i].pageY,
+              touches[i].pageX - startTouches[i].pageX,
+              touches[i].pageY - startTouches[i].pageY
+            );
+          } else {
+            ctx.strokeRect(
+              startTouches[i].pageX,
+              startTouches[i].pageY,
+              touches[i].pageX - startTouches[i].pageX,
+              touches[i].pageY - startTouches[i].pageY
+            );
+            ctx.stroke();
+          }
+          break;
+        default:
+          break; //Do nothing since the mode is unknown
       }
       ongoingTouches.splice(idx, 1); // remove it; we're done
     }
@@ -312,6 +336,19 @@ function startup() {
           self.innerHTML = "Lines";
         }
         clearCanvas();
+      });
+
+    document
+      .getElementById("fillmodebutton")
+      .addEventListener("click", (evt) => {
+        var self = this.getElementById("fillmodebutton");
+        if (fillsolid) {
+          self.innerHTML = "Outline";
+          fillsolid = false;
+        } else {
+          self.innerHTML = "Filled";
+          fillsolid = true;
+        }
       });
   }
 }
