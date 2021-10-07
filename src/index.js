@@ -43,13 +43,20 @@ function makepattern() {
 function clearCanvas() {
   var el = document.getElementById("canvas");
   var ctx = el.getContext("2d");
+  var clone = document.getElementById("clone");
+  var clonectx = clone.getContext("2d");
   if (usepattern) {
     ctx.fillStyle = backgroundpattern;
     ctx.fillRect(0, 0, el.width, el.height); //Fill with pattern
+    clonectx.fillStyle = backgroundpattern;
+    clonectx.fillRect(0, 0, el.width, el.height); //Fill with pattern on clone
   } else {
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, el.width, el.height);
-    ctx.stroke();
+    ctx.stroke(); //Push the rect to the canvas
+    clonectx.fillStyle = "#ffffff";
+    clonectx.fillRect(0, 0, el.width, el.height);
+    clonectx.stroke(); //Push the rect to the clone canvas
   }
 }
 
