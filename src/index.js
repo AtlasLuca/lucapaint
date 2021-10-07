@@ -8,10 +8,10 @@ app.innerHTML = `
     Your browser does not support canvas elements.
   </canvas>
   <div id="bottombar">
-    <button id="modebutton">Draw</button>
-    <button id="backgroundbutton">No lines</button>
-    <input id="size" type="number" min="5" max="50" value="10" step="5" class="size">
-    <input id="color" type="color"></button>
+    <button id="modebutton" title="Mode">Draw</button>
+    <button id="backgroundbutton" title="Background type">No lines</button>
+    <input id="size" title="Size" type="number" min="5" max="50" value="10" step="5" class="size">
+    <input id="color" title="Color" type="color"></button>
   </div>
 </div id="outer">
 <canvas id="pattern" width="50" height="50" style="display: none; left: 50px;"></canvas>
