@@ -22,6 +22,7 @@ app.innerHTML = `
 var usepattern = false; //Use pattern? By default set to false
 var mode = 0; //Current mode, modes are 1 - draw, 2 - erase, 3 - circle, 4 - line, 5 - rect
 var fillsolid = false;
+let color;
 
 var ongoingTouches = []; //Ongoing touches
 var startTouches = []; //Touch start positions
@@ -51,10 +52,8 @@ function clearCanvas() {
   }
 }
 
-function colorForTouch(touch) {
-  let color;
+function colorForTouch() {
   color = document.getElementById("color").value;
-  return color;
 }
 
 function copyTouch({ identifier, pageX, pageY }) {
@@ -75,6 +74,7 @@ function ongoingTouchIndexById(idToFind) {
 function handleStart(evt) {
   evt.preventDefault();
   var el = document.getElementById("canvas");
+  //var color = colorForTouch();
   if (el.width !== window.innerWidth || el.height !== window.innerHeight - 30) {
     //Update size when needed
     el.width = window.innerWidth.toString();
@@ -109,10 +109,10 @@ function handleMove(evt) {
   var touches = evt.changedTouches;
 
   for (var i = 0; i < touches.length; i++) {
-    var color = colorForTouch(touches[i]);
     var idx = ongoingTouchIndexById(touches[i].identifier);
 
     if (idx >= 0) {
+      colorForTouch();
       ctx.beginPath();
       var widthvalue = document.getElementById("size").value;
       if (touches[i].force === 0) {
@@ -121,6 +121,7 @@ function handleMove(evt) {
         ctx.lineWidth = touches[i].force * widthvalue;
       }
       ctx.strokeStyle = color;
+      ctx.fillStyle = color;
       ctx.lineCap = "round";
 
       switch (mode) {
@@ -202,12 +203,12 @@ function handleEnd(evt) {
   var touches = evt.changedTouches;
 
   for (var i = 0; i < touches.length; i++) {
-    var color = colorForTouch(touches[i]);
     var idx = ongoingTouchIndexById(touches[i].identifier);
 
     if (idx >= 0) {
       ctx.lineWidth = 4;
       ctx.fillStyle = color;
+      colorForTouch();
       ctx.beginPath();
       switch (mode) {
         case 2:
@@ -350,6 +351,10 @@ function startup() {
           fillsolid = true;
         }
       });
+    document.getElementById("color").addEventListener("change", (evt) => {
+      var self = this.getElementById("color");
+      color = self.value;
+    });
   }
 }
 
