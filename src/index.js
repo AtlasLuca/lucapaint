@@ -106,7 +106,7 @@ function handleStart(evt) {
   //var ctx = el.getContext("2d");
   var touches = evt.changedTouches;
 
-  if (mode === 3 || mode === 2) {
+  if (mode === 4 || mode === 3 || mode === 2) {
     document.getElementById("clone").getContext("2d").drawImage(el, 0, 0);
   }
 
@@ -196,6 +196,18 @@ function handleMove(evt) {
           ctx.lineTo(touches[i].pageX, touches[i].pageY);
           ctx.stroke();
         }
+      } else if (mode === 4) {
+        if (i === 0) {
+          ctx.drawImage(document.getElementById("clone"), 0, 0);
+          ctx.moveTo(startTouches[i].pageX, startTouches[i].pageY);
+          ctx.strokeRect(
+            startTouches[i].pageX,
+            startTouches[i].pageY,
+            touches[i].pageX - startTouches[i].pageX,
+            touches[i].pageY - startTouches[i].pageY
+          );
+          ctx.stroke();
+        }
       }
 
       ongoingTouches.splice(idx, 1, copyTouch(touches[i])); // swap in the new touch record
@@ -240,6 +252,16 @@ function handleEnd(evt) {
         ctx.drawImage(document.getElementById("clone"), 0, 0);
         ctx.moveTo(startTouches[i].pageX, startTouches[i].pageY);
         ctx.lineTo(touches[i].pageX, touches[i].pageY);
+        ctx.stroke();
+      } else if (mode === 4) {
+        ctx.drawImage(document.getElementById("clone"), 0, 0);
+        ctx.moveTo(startTouches[i].pageX, startTouches[i].pageY);
+        ctx.strokeRect(
+          startTouches[i].pageX,
+          startTouches[i].pageY,
+          touches[i].pageX - startTouches[i].pageX,
+          touches[i].pageY - startTouches[i].pageY
+        );
         ctx.stroke();
       }
       //ctx.fillRect(touches[i].pageX - 4, touches[i].pageY - 4, 8, 8); // and a square at the end
@@ -304,6 +326,9 @@ function startup() {
         self.innerHTML = "Line";
         mode = 3;
       } else if (mode === 3) {
+        self.innerHTML = "Rect";
+        mode = 4;
+      } else if (mode === 4) {
         self.innerHTML = "Draw";
         mode = 0;
       }
