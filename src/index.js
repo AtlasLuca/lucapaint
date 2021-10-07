@@ -20,8 +20,8 @@ app.innerHTML = `
 
 var ongoingTouches = [];
 
-var usepattern = false;
-var mode = 0;
+var usepattern = false; //Use pattern? By default set to false
+var mode = 0; //Current mode, modes are 1 - draw, 2 - erase, 3 - circle, 4 - line, 5 - rect
 var startTouches = [];
 /*var colorid = 0;
 var colors = [
@@ -106,7 +106,7 @@ function handleStart(evt) {
   //var ctx = el.getContext("2d");
   var touches = evt.changedTouches;
 
-  if (mode === 4 || mode === 3 || mode === 2) {
+  if (mode === 2 || mode === 3 || mode === 4) {
     document.getElementById("clone").getContext("2d").drawImage(el, 0, 0);
   }
 
@@ -175,6 +175,13 @@ function handleMove(evt) {
       } else if (mode === 2) {
         if (i === 0) {
           ctx.drawImage(document.getElementById("clone"), 0, 0);
+          ctx.moveTo(startTouches[i].pageX, startTouches[i].pageY);
+          ctx.lineTo(touches[i].pageX, touches[i].pageY);
+          ctx.stroke();
+        }
+      } else if (mode === 3) {
+        if (i === 0) {
+          ctx.drawImage(document.getElementById("clone"), 0, 0);
           var radius = Math.sqrt(
             Math.pow(startTouches[i].pageX - touches[i].pageX, 2) +
               Math.pow(startTouches[i].pageY - touches[i].pageY, 2)
@@ -187,13 +194,6 @@ function handleMove(evt) {
             Math.PI * 2,
             true
           );
-          ctx.stroke();
-        }
-      } else if (mode === 3) {
-        if (i === 0) {
-          ctx.drawImage(document.getElementById("clone"), 0, 0);
-          ctx.moveTo(startTouches[i].pageX, startTouches[i].pageY);
-          ctx.lineTo(touches[i].pageX, touches[i].pageY);
           ctx.stroke();
         }
       } else if (mode === 4) {
@@ -235,6 +235,11 @@ function handleEnd(evt) {
       //ctx.fillStyle = backgroundpattern;
       ctx.beginPath();
       if (mode === 2) {
+        ctx.drawImage(document.getElementById("clone"), 0, 0);
+        ctx.moveTo(startTouches[i].pageX, startTouches[i].pageY);
+        ctx.lineTo(touches[i].pageX, touches[i].pageY);
+        ctx.stroke();
+      } else if (mode === 3) {
         var radius = Math.sqrt(
           Math.pow(startTouches[i].pageX - touches[i].pageX, 2) +
             Math.pow(startTouches[i].pageY - touches[i].pageY, 2)
@@ -247,11 +252,6 @@ function handleEnd(evt) {
           Math.PI * 2,
           true
         );
-        ctx.stroke();
-      } else if (mode === 3) {
-        ctx.drawImage(document.getElementById("clone"), 0, 0);
-        ctx.moveTo(startTouches[i].pageX, startTouches[i].pageY);
-        ctx.lineTo(touches[i].pageX, touches[i].pageY);
         ctx.stroke();
       } else if (mode === 4) {
         ctx.drawImage(document.getElementById("clone"), 0, 0);
@@ -320,10 +320,10 @@ function startup() {
         self.innerHTML = "Erase";
         mode = 1;
       } else if (mode === 1) {
-        self.innerHTML = "Circle";
+        self.innerHTML = "Line";
         mode = 2;
       } else if (mode === 2) {
-        self.innerHTML = "Line";
+        self.innerHTML = "Circle";
         mode = 3;
       } else if (mode === 3) {
         self.innerHTML = "Rect";
