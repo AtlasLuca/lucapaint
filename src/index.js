@@ -11,6 +11,7 @@ app.innerHTML = `
     <button id="modebutton" title="Draw mode">Draw</button>
     <button id="fillmodebutton" title="Fill mode">Outline</button>
     <button id="backgroundbutton" title="Background type">No lines</button>
+    <button id="clearbutton" title="Clear the screen">Clear</button>
     <input id="size" title="Size" type="number" min="5" max="50" value="10" step="5" class="size">
     <input id="color" title="Color" type="color"></button>
   </div>
@@ -306,6 +307,7 @@ function startup() {
     el.addEventListener("touchcancel", handleCancel, false);
     el.addEventListener("touchmove", handleMove, false);
     //window.addEventListener("keydown", onkey, false); //Currently unused
+
     document.getElementById("modebutton").addEventListener("click", (evt) => {
       var self = this.getElementById("modebutton");
       if (mode === 0) {
@@ -338,7 +340,6 @@ function startup() {
         }
         clearCanvas();
       });
-
     document
       .getElementById("fillmodebutton")
       .addEventListener("click", (evt) => {
@@ -351,6 +352,9 @@ function startup() {
           fillsolid = true;
         }
       });
+    document
+      .getElementById("clearbutton")
+      .addEventListener("click", clearCanvas);
     document.getElementById("color").addEventListener("change", (evt) => {
       var self = this.getElementById("color");
       color = self.value;
