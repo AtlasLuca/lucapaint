@@ -67,9 +67,6 @@ function clearCanvas() {
 function colorForTouch(touch) {
   let color;
   color = document.getElementById("color").value;
-  /*console.log(
-    "color for touch with identifier " + touch.identifier + " = " + color
-  );*/
   return color;
 }
 
@@ -90,7 +87,6 @@ function ongoingTouchIndexById(idToFind) {
 
 function handleStart(evt) {
   evt.preventDefault();
-  //console.log("startTouches.");
   var el = document.getElementById("canvas");
   if (el.width !== window.innerWidth || el.height !== window.innerHeight - 30) {
     el.width = window.innerWidth.toString();
@@ -103,7 +99,7 @@ function handleStart(evt) {
     clone.height = (window.innerHeight - 30).toString();
     clone.style.height = window.innerHeight - 30;
   }
-  //var ctx = el.getContext("2d");
+  //var ctx = el.getContext("2d"); //Unused
   var touches = evt.changedTouches;
 
   if (mode === 2 || mode === 3 || mode === 4) {
@@ -111,19 +107,10 @@ function handleStart(evt) {
   }
 
   for (var i = 0; i < touches.length; i++) {
-    //console.log("startTouches:" + i + "...");
     if (ongoingTouches.length <= 1) {
       ongoingTouches.push(copyTouch(touches[i]));
     }
-    //var color = colorForTouch(touches[i]);
     startTouches[i] = touches[i];
-    /*
-    ctx.beginPath();
-    //ctx.arc(touches[i].pageX, touches[i].pageY, 4, 0, 2 * Math.PI, false); // a circle at the start
-    //ctx.fillStyle = color;
-    ctx.fill();
-    */
-    //console.log("startTouches:" + i + ".");
   }
 }
 
@@ -138,18 +125,7 @@ function handleMove(evt) {
     var idx = ongoingTouchIndexById(touches[i].identifier);
 
     if (idx >= 0) {
-      //console.log("continuing touch " + idx);
       ctx.beginPath();
-      /*console.log(
-        "ctx.moveTo(" +
-          ongoingTouches[idx].pageX +
-          ", " +
-          ongoingTouches[idx].pageY +
-          ");"
-      );*/
-      /*console.log(
-        "ctx.lineTo(" + touches[i].pageX + ", " + touches[i].pageY + ");"
-      );*/
       var widthvalue = document.getElementById("size").value;
       if (touches[i].force === 0) {
         ctx.lineWidth = widthvalue;
@@ -167,7 +143,7 @@ function handleMove(evt) {
         if (usepattern) {
           ctx.strokeStyle = backgroundpattern;
         } else {
-          ctx.strokeStyle = "#ffffff";
+          ctx.strokeStyle = "#ffffff"; //Eraser is used
         }
         ctx.moveTo(ongoingTouches[idx].pageX, ongoingTouches[idx].pageY);
         ctx.lineTo(touches[i].pageX, touches[i].pageY);
@@ -211,16 +187,12 @@ function handleMove(evt) {
       }
 
       ongoingTouches.splice(idx, 1, copyTouch(touches[i])); // swap in the new touch record
-      //console.log(".");
-      /*} else {*/
-      //console.log("can't figure out which touch to continue");
     }
   }
 }
 
 function handleEnd(evt) {
   evt.preventDefault();
-  //console.log("touchend");
   var el = document.getElementById("canvas");
   var ctx = el.getContext("2d");
   var touches = evt.changedTouches;
@@ -232,14 +204,8 @@ function handleEnd(evt) {
     if (idx >= 0) {
       ctx.lineWidth = 4;
       ctx.fillStyle = color;
-      //ctx.fillStyle = backgroundpattern;
       ctx.beginPath();
       if (mode === 2) {
-        ctx.drawImage(document.getElementById("clone"), 0, 0);
-        ctx.moveTo(startTouches[i].pageX, startTouches[i].pageY);
-        ctx.lineTo(touches[i].pageX, touches[i].pageY);
-        ctx.stroke();
-      } else if (mode === 3) {
         var radius = Math.sqrt(
           Math.pow(startTouches[i].pageX - touches[i].pageX, 2) +
             Math.pow(startTouches[i].pageY - touches[i].pageY, 2)
@@ -253,6 +219,11 @@ function handleEnd(evt) {
           true
         );
         ctx.stroke();
+      } else if (mode === 3) {
+        ctx.drawImage(document.getElementById("clone"), 0, 0);
+        ctx.moveTo(startTouches[i].pageX, startTouches[i].pageY);
+        ctx.lineTo(touches[i].pageX, touches[i].pageY);
+        ctx.stroke();
       } else if (mode === 4) {
         ctx.drawImage(document.getElementById("clone"), 0, 0);
         ctx.moveTo(startTouches[i].pageX, startTouches[i].pageY);
@@ -264,17 +235,13 @@ function handleEnd(evt) {
         );
         ctx.stroke();
       }
-      //ctx.fillRect(touches[i].pageX - 4, touches[i].pageY - 4, 8, 8); // and a square at the end
       ongoingTouches.splice(idx, 1); // remove it; we're done
-    } else {
-      //console.log("can't figure out which touch to end");
     }
   }
 }
 
 function handleCancel(evt) {
   evt.preventDefault();
-  //console.log("touchcancel.");
   var touches = evt.changedTouches;
 
   for (var i = 0; i < touches.length; i++) {
@@ -313,7 +280,7 @@ function startup() {
     el.addEventListener("touchend", handleEnd, false);
     el.addEventListener("touchcancel", handleCancel, false);
     el.addEventListener("touchmove", handleMove, false);
-    //window.addEventListener("keydown", onkey, false);
+    //window.addEventListener("keydown", onkey, false); //Currently unused
     document.getElementById("modebutton").addEventListener("click", (evt) => {
       var self = this.getElementById("modebutton");
       if (mode === 0) {
@@ -346,16 +313,6 @@ function startup() {
         }
         clearCanvas();
       });
-    /*document.getElementById("color").addEventListener("click", (evt) => {
-      var self = this.getElementById("color");
-      if (colorid >= colors.length - 1) {
-        colorid = 0;
-        self.style.background = colors[0];
-      } else {
-        colorid++;
-        self.style.background = colors[colorid];
-      }
-    });*/
   }
 }
 
